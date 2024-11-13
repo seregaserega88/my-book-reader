@@ -4,48 +4,59 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Чтение книги</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="js/epub.min.js"></script>
+    <style>
+        #viewer {
+            width: 100%;
+            height: 500px;
+            border: 1px solid #000;
+        }
+        .navigation {
+            margin-top: 10px;
+        }
+    </style>
 </head>
 <body>
-
-<div class="container">
     <h1>Чтение книги</h1>
-    <div id="bookContent">Загрузка книги...</div>
-</div>
+    <div id="viewer"></div>
+    <div class="navigation">
+        <button id="prevPage">Назад</button>
+        <button id="nextPage">Вперед</button>
+    </div>
 
-<script>
-    async function loadBook() {
+    <script>
+        const viewer = document.getElementById('viewer');
+        const prevButton = document.getElementById('prevPage');
+        const nextButton = document.getElementById('nextPage');
+
         const urlParams = new URLSearchParams(window.location.search);
         const filename = urlParams.get('filename');
+        const bookPath = `http://127.0.0.1:8000/read-book/${filename}`;
 
-        if (!filename) {
-            document.getElementById('bookContent').textContent = "Книга не найдена.";
-            return;
-        }
+        let book = ePub(bookPath);
+        let rendition = book.renderTo("viewer", {
+            width: "100%",
+            height: "100%"
+        });
 
-        // Пытаемся загрузить файл для скачивания
-        try {
-            const response = await fetch(`http://127.0.0.1:8000/read-book/${filename}`);
-            if (response.ok) {
-                const blob = await response.blob();
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = filename;
-                document.body.appendChild(a);
-                a.click();
-                a.remove();
-                document.getElementById('bookContent').textContent = "Файл загружается...";
-            } else {
-                document.getElementById('bookContent').textContent = "Ошибка при загрузке книги.";
-            }
-        } catch (error) {
-            console.error("Error fetching book:", error);
-            document.getElementById('bookContent').textContent = "Ошибка при подключении к серверу.";
-        }
-    }
+        rendition.display();
 
-    loadBook();
-</script>
+        // Обработчик кнопки "Назад"
+        prevButton.addEventListener('click', () => {
+            rendition.prev();
+        });
 
+        // Обработчик кнопки "Вперед"
+        nextButton.addEventListener('click', () => {
+            rendition.next();
+        });
+
+        // Обработка ошибок при загрузке книги
+        book.on('error', (error) => {
+            console.error("Ошибка загрузки книги:", error);
+            viewer.innerText = "Ошибка загрузки книги.";
+        });
+    </script>
 </body>
 </html>
