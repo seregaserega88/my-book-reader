@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Личный кабинет</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+        }
+        .container {
+            text-align: center;
+            padding: 20px;
+            border: 1px solid #ddd;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #333;
+        }
+        input[type="file"] {
+            display: block;
+            margin: 10px auto;
+        }
+        .button {
+            padding: 10px 20px;
+            font-size: 1em;
+            color: #fff;
+            background-color: #007bff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Добро пожаловать в ваш личный кабинет!</h1>
+    <p>Здесь будет доступ к вашим книгам и настройкам.</p>
+
+    <h3>Загрузить книгу</h3>
+    <input type="file" id="bookFile">
+    <button class="button" onclick="uploadBook()">Загрузить книгу</button>
+    <p id="message"></p>
+</div>
+
+<script>
+    async function uploadBook() {
+        const fileInput = document.getElementById('bookFile');
+        const file = fileInput.files[0];
+        if (!file) {
+            document.getElementById('message').textContent = "Пожалуйста, выберите файл.";
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append("file", file);
+
+        const response = await fetch('http://127.0.0.1:8000/upload-book', {
+            method: 'POST',
+            body: formData
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            document.getElementById('message').textContent = data.message;
+            // Переход на страницу чтения книги
+            window.location.href = `read.html?filename=${data.filename}`;
+        } else {
+            document.getElementById('message').textContent = "Ошибка при загрузке книги.";
+        }
+    }
+</script>
+
+</body>
+</html>
